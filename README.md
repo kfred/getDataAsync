@@ -45,14 +45,16 @@ By default, the "clean" option is set to false.
 
 When set to true, the "clean" will strip aggregations, such as "SUM" and "MIN"
 from the field names in your worksheet, which Tableau includes by default,
-and transform your JSON output into a single-dimensional array of objects. 
+and transform your JSON output into a single-dimensional array of objects
+containing only the fieldName and formattedValue values from Tableau.
+
 This may make it easier to work with your JSON output, but this option must 
 be explicitly set to true if you would like to use it.  
 
 ## Example
 
 Here is an example of retrieving the "Male" data associated with a "Gender" 
-filter in a Tableau workbook defined as viz, then printing the object to the 
+filter in a Tableau workbook defined as viz, then printing the returned data to the 
 browser console:
 
 ```javascript
@@ -63,7 +65,7 @@ getDataAsync(sheet, "Gender", "Male").then(function (data) {
 });
 ```
 
-Next is an example retrieving the same data, but this time as an array, then
+Next is an example retrieving the same data, but this time as an clean array, then
 printing the length of that array to the browser console:
 
 ```javascript
@@ -77,4 +79,4 @@ printing the length of that array to the browser console:
  });
 ```
 
-See the examples folder for more examples.
+See the examples folder for more examples. (Check back soon.)
