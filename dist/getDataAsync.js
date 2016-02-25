@@ -18,29 +18,31 @@ See the License for the specific language governing permissions and limitations 
 function getDataAsync(sheet, fieldname, value, options) {
     var cleanData = function(marks) {
         var data = [];
-        for (var markIndex = 0; markIndex < marks.length; markIndex++) {
-            var pairs = marks[markIndex].getPairs();
+        marks.forEach(function(mark) {
+            var pairs = mark.getPairs();
             var obj = {};
-            for (var pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
-                var pair = pairs[pairIndex];
-                obj[pair.fieldName.replace("SUM(", "").replace("AGG(", "").replace("MAX(", "").replace("MIN(", "").replace("AVG(", "").replace("MINUTE(", "").replace(")", "")] = pair.formattedValue;
-            }
+            pairs.forEach(function(pair) {
+                obj[pair.fieldName.replace(/^.*\(|\)/g, '')] = pair.formattedValue;
+            });
             data.push(obj);
-        }
+        });
         return data;
     };
+
     return new Promise(function(resolve, reject) {
         sheet.applyFilterAsync(fieldname, value, "REPLACE").then(function() {
-            sheet.selectMarksAsync(fieldname, value, "REPLACE").then(function () {
-                sheet.getSelectedMarksAsync().then(function (marks) {
-                    if (options.clean) {
-                        var values = cleanData(marks);
-                    } else {
-                        var values = marks;
-                    }
-                    resolve(values);
-                });
-            });
+            return sheet.selectMarksAsync(fieldname, value, "REPLACE")
+        })
+        .then(function () {
+            return sheet.getSelectedMarksAsync()
+        })
+        .then(function (marks) {
+            if (options.clean) {
+                var values = cleanData(marks);
+            } else {
+                var values = marks;
+            }
+            resolve(values);
         });
     });
 }
