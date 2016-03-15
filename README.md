@@ -31,23 +31,49 @@ getDataAsync(sheet, fieldname, value, options)
 
 ## Options
 
-getDataAsync can be configured through an options object. Right now,
-only a simple "clean" option can be set in the options object, but 
-additional options will be added in the future.
+getDataAsync can be configured through an options object. These options
+allow you to specify how you would like to receive your JSON from Tableau.
+
+See below for the default settings of these options:
 
 ```javascript
 var options = {
-  "clean": true
+  "clean": false,
+  "flatten": false,
+  "raw": false,
+  "filter": true
 };
 ```
 
-By default, the "clean" option is set to false. 
+clean: 
 
 When set to true, the "clean" setting will strip aggregations, such as "SUM" 
-and "MIN"from the field name titles in your worksheet, which Tableau includes
-by default, and transform your JSON output into a single-dimensional array 
-of objects. This may make it easier to work with your JSON output, but this 
-option must be explicitly set to true if you would like to use it.  
+and "MIN" from the field name titles in your worksheet, which Tableau includes
+by default. (Disabled when "raw" is set to true.)
+
+flatten:
+
+When set to true, "flatten" will transform your JSON output into a 
+single-dimension array of objects, setting each key of that object to the value 
+of Tableau's fieldName key, and setting the value of that new key to Tableau's 
+formattedValue key. You may find this flatter output is easier to query.
+(Disabled when "raw" is set to true.)
+
+raw:
+
+When set to true, "raw" will output the raw JSON returned by Tableau. By 
+default, getDataAsync() leverage's Tableau's getPairs() function to transform
+JSON output into an two-dimensional array of objects. This raw setting will
+include some additional data that will require more parsing to use. (This
+setting disables "clean" and "flatten".)
+
+filter:
+
+By default, "filter" is set to true. In order to retrieve JSON from Tableau,
+the data you want to retrieve must first be present in your workbook. This
+setting will automatically filter your requested field name and value before
+attempting to retrieve its JSON. Setting this to false will require you to
+first filter those values using Tableau's native JavaScript API. 
 
 ## Examples
 
@@ -70,12 +96,34 @@ array to the browser console:
 ```javascript
  var sheet = viz.getWorkbook().getActiveSheet();
  var options = {
-   "clean": true
+   "clean": true,
+   "flatten": true,
  };
  
  getDataAsync(sheet, "Gender", ["Male", "Female"], options).then(function (data) {
    console.log(data.length);
  });
 ```
+
+Next is an example using the native Tableau JavaScript API to first filter 
+the workbook, then retrieve the raw JSON output from Tableau:
+
+```javascript
+ var sheet = viz.getWorkbook().getActiveSheet();
+ var options = {
+   "raw": true,
+   "filter": false,
+ };
+ 
+ sheet.applyFilterAsync("Gender", "Male", "REPLACE")
+ .then(function () {
+ 	 return getDataAsync(sheet, "Gender", "Male", options)
+ 	 .then(function (data) {
+	   console.log(data.length);
+	 });
+ });
+
+```
+
 
 See the examples folder for more examples. (Coming soon.)
