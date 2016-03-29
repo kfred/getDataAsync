@@ -18,23 +18,23 @@ function getDataAsync(sheet, fieldname, value, options) {
     var helpers = {
         cleanData: function (pair) {
             pair.forEach(function (p) {
-                var clean = p.fieldName.replace(/^.*\(|\)/g, '');
-                p.fieldName = clean;
+                var cleanName = p.fieldName.replace(/^.*\(|\)/g, '');
+                p.fieldName = cleanName;
             });
             return pair;
         },
-        flattenData: function (dat) {
+        flattenData: function (d) {
             var obj = {};
-            dat.forEach(function(pair) {
+            d.forEach(function (pair) {
                 var name = pair.fieldName;
                 if (helpers.settings().clean) { name = pair.fieldName.replace(/^.*\(|\)/g, ''); }
                 obj[name] = pair.formattedValue;
             });
             return obj;
         },
-        adjData: function (dat) {
-            var data = [];
-            dat.forEach(function(mark) {
+        adjData: function (d) {
+            var array = [];
+            d.forEach(function (mark) {
                 var pairs = mark.getPairs();
                 if (helpers.settings().flatten) {
                     var obj = helpers.flattenData(pairs);
@@ -43,9 +43,12 @@ function getDataAsync(sheet, fieldname, value, options) {
                 } else {
                     var obj = pairs;
                 }
-                data.push(obj);
+                array.push(obj);
             });
-            return data;
+            return array;
+        },
+        e: function (err) {
+            return '(' + String(err).replace('Error: ','') + ')';
         },
         defaults: {
             "clean": false,
@@ -73,6 +76,8 @@ function getDataAsync(sheet, fieldname, value, options) {
                 return sheet.applyFilterAsync(fieldname, value, "REPLACE")
                 .then(function () {
                     return sheet.selectMarksAsync(fieldname, value, "REPLACE")
+                }, function (e) {
+                    reject('Error: Filtering ' + helpers.e(e));
                 })
             }
         } else {
@@ -83,14 +88,19 @@ function getDataAsync(sheet, fieldname, value, options) {
         getData()
         .then(function () {
             return sheet.getSelectedMarksAsync()
+        }, function (e) {
+            reject('Error: Selecting Marks ' + helpers.e(e));
         })
         .then(function (marks) {
+            if (marks.length < 1) { reject('Error: No Data Available'); }
             if (settings.raw) {
-                var values = marks;
+                var data = marks;
             } else {
-                var values = helpers.adjData(marks);
+                var data = helpers.adjData(marks);
             }
-            resolve(values);
+            resolve(data);
+        }, function (e) {
+            reject('Error: Retrieving Marks ' + helpers.e(e));
         });
     });
 }
