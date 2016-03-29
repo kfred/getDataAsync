@@ -27,7 +27,16 @@ has completed, allowing you to chain this request with a then statement.
 
 getDataAsync accepts three arguments, plus an optional "options" argument:
 
+```javascript
 getDataAsync(sheet, fieldname, value, options)
+.then(function (data) {
+  //do something with JSON
+})
+.catch(function (err) {
+  //do something on error
+});
+```
+
 
 ## Options
 
@@ -106,7 +115,8 @@ array to the browser console:
 ```
 
 Next is an example using the native Tableau JavaScript API to first filter 
-the workbook, then retrieve the raw JSON output from Tableau:
+the workbook on "Male" and "Female" values, but only retrieve the raw JSON output 
+from Tableau for the "Male" data points in the workbook:
 
 ```javascript
  var sheet = viz.getWorkbook().getActiveSheet();
@@ -115,14 +125,29 @@ the workbook, then retrieve the raw JSON output from Tableau:
    "filter": false,
  };
  
- sheet.applyFilterAsync("Gender", "Male", "REPLACE")
+ sheet.applyFilterAsync("Gender", ["Male", "Female"], "REPLACE")
  .then(function () {
  	 return getDataAsync(sheet, "Gender", "Male", options)
  	 .then(function (data) {
 	   console.log(data.length);
 	 });
  });
+```
 
+Last is an example attempting to retrieve JSON for a filter value that does not exist, 
+and showing an alert to the end-user to display the error message returned by
+getDataAsync() function:
+
+```javascript
+ var sheet = viz.getWorkbook().getActiveSheet();
+ 
+getDataAsync(sheet, "Gender", "ale")
+.then(function (data) {
+  console.log(data.length);
+})
+.catch(function (err) {
+  alert(err);
+});
 ```
 
 
